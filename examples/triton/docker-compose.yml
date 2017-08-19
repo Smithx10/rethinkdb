@@ -1,0 +1,36 @@
+version: '2.1'
+# rethinkdb demonstration of the Autopilot pattern
+services:
+  rtdb:
+    image: autopilotpattern/rethinkdb:test
+    mem_limit: 2g
+    labels:
+      - triton.cns.services=rtdb-rtdb
+    restart: always
+    network_mode: bridge
+    ports:
+      - 29015
+      - 28015
+      - 8080
+    environment:
+      - CONSUL=rtdb-consul.svc.${TRITON_CNS_SEARCH_DOMAIN_PRIVATE}
+      - CONSUL_AGENT=1
+    command: >
+      /usr/local/bin/containerpilot
+
+# ---------------------------------------------------
+# Consul as a service discovery tier
+  consul:
+    image: autopilotpattern/consul:test
+    labels:
+      - triton.cns.services=rtdb-consul
+      - com.joyent.package=dds-128m
+    restart: always
+    mem_limit: 128m
+    ports:
+      - 8500
+    network_mode: bridge
+    environment:
+      - CONSUL=rtdb-consul.svc.${TRITON_CNS_SEARCH_DOMAIN_PRIVATE}
+    command: >
+      /usr/local/bin/containerpilot
